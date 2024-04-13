@@ -40,6 +40,7 @@ export function LoginForm() {
 
 	const handleSubmit = async(values: AuthType) => {
 		setLoading(true);
+		setError('');
 		api
 			.post('signin', values)
 			.then(res => {

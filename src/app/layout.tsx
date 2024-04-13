@@ -14,23 +14,14 @@ export const metadata = {
 	title: { default: 'Mantine Admin', template: '%s | Mantine Admin' },
 	description: 'A Modern Dashboard with Next.js.',
 	keywords: [
-		'Next.js',
-		'Mantine',
-		'Admin',
-		'Template',
-		'Admin Template',
-		'Admin Dashboard',
-		'Admin Panel',
-		'Admin UI',
-	],
-	authors: [
-		{
-			name: 'jotyy',
-			url: 'https://jotyy.vercel.app',
-		},
-	],
-	creator: 'jotyy',
-	manifest: 'https://mantine-admin.vercel.app/site.webmanifest',
+		'Ecole',
+		'Eleve',
+		'Cours',
+		'Classe',
+		'school',
+		'Student',
+		'Enseignant'
+	]
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -8,6 +8,7 @@ import useAuthStore from '@/app/store/authStore';
 import { AdminHeader } from '@/components/Headers/AdminHeader';
 import { Navbar } from '@/components/Navbar/Navbar';
 import { navLinks } from '@/config';
+import api from '@/lib/api';
 
 interface Props {
 	children: React.ReactNode;
@@ -21,12 +22,20 @@ export default function DashboardLayout({ children }: Props) {
 
 	const bg = colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0];
 
+	const { user, edit } = useAuthStore();
+
 	useEffect(() => {
 		const storedValue = localStorage.getItem('token');
 		if (!storedValue) {
 			router.push('/login');
 		}
 	}, [router]);
+
+	useEffect(() => {
+		if (!user) {
+			api('user').then(res => edit(res.data) )
+		}
+	}, [edit, user]);
 
 	return (
 		<AppShell

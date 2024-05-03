@@ -3,8 +3,19 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css'; //if using mantine date picker features
 import 'mantine-react-table/styles.css'; //make sure MRT styles were imported in your app root (once)
-import { ActionIcon, Box, Button, Flex, Stack, Text, Title, Tooltip } from '@mantine/core';
+import {
+	ActionIcon,
+	Box,
+	Button,
+	ComboboxItem,
+	Flex,
+	Stack,
+	Text,
+	Title,
+	Tooltip,
+} from '@mantine/core';
 import { modals, ModalsProvider } from '@mantine/modals';
+import { notifications } from '@mantine/notifications';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { IconDownload } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +30,7 @@ import {
 	type MRT_TableOptions,
 	useMantineReactTable,
 } from 'mantine-react-table';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import api from '@/lib/api';
 import { Course } from '@/services/courses/types';
 
@@ -31,7 +42,7 @@ const csvConfig = mkConfig({
 
 const CoursePage = () => {
 	const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
-
+	const [selectedValue, setSelectedValue] = useState<string | undefined>('');
 	//call CREATE hook
 	const { mutateAsync: createCourse, isPending: isCreatingCourse } = useCreateCourse();
 	//call READ hook
@@ -63,13 +74,8 @@ const CoursePage = () => {
 	const columns = useMemo<MRT_ColumnDef<Course>[]>(
 		() => [
 			{
-				accessorKey: 'index',
-				header: 'N°',
-				enableEditing: false,
-			},
-			{
 				accessorKey: 'name',
-				header: 'Name',
+				header: 'Nom',
 				mantineEditTextInputProps: {
 					type: 'text',
 					required: true,
@@ -98,6 +104,27 @@ const CoursePage = () => {
 				},
 			},
 			{
+				accessorKey: 'unit_id',
+				accessorFn: originalRow => originalRow.group?.label,
+				header: 'Unité Enseignement',
+				editVariant: 'select',
+				mantineEditSelectProps: row => {
+					setSelectedValue(row.row.original.group?.value.toString());
+					return {
+						data: unitData,
+						value: selectedValue,
+						/* required: true,
+						error: validationErrors?.unit_id,
+						onFocus: () =>
+						setValidationErrors({
+							...validationErrors,
+							unit_id: undefined,
+						}), */
+						onChange: value => setSelectedValue(value.toString()),
+					};
+				},
+			},
+			{
 				accessorKey: 'description',
 				header: 'Description',
 				mantineEditTextInputProps: {
@@ -109,17 +136,8 @@ const CoursePage = () => {
 						}),
 				},
 			},
-			{
-				accessorFn: originalRow => originalRow.group?.label,
-				header: 'Unité Enseignement',
-				editVariant: 'select',
-				mantineEditSelectProps: {
-					data: unitData ? unitData : [],
-					value: ['2'],
-				},
-			},
 		],
-		[unitData, validationErrors],
+		[selectedValue, unitData, validationErrors],
 	);
 
 	//CREATE action
@@ -156,13 +174,13 @@ const CoursePage = () => {
 	//DELETE action
 	const openDeleteConfirmModal = (row: MRT_Row<Course>) =>
 		modals.openConfirmModal({
-			title: 'Are you sure you want to delete this Course?',
+			title: 'Etes-vous sûre de vouloir supprimer ce cours?',
 			children: (
 				<Text>
-					Are you sure you want to delete {row.original.name}? This action cannot be undone.
+					Voulez vous vraiment supprimer {row.original.name}? Cette action est irrévocable.
 				</Text>
 			),
-			labels: { confirm: 'Delete', cancel: 'Cancel' },
+			labels: { confirm: 'Supprimer', cancel: 'Cancel' },
 			confirmProps: { color: 'red' },
 			onConfirm: () => deleteCourse(row.original.id),
 		});
@@ -244,7 +262,7 @@ const CoursePage = () => {
 						// );
 					}}
 				>
-					Create New Course
+					Nouveau Cours
 				</Button>
 				<Button
 					color="lightblue"
@@ -253,7 +271,7 @@ const CoursePage = () => {
 					leftSection={<IconDownload />}
 					variant="filled"
 				>
-					Export All Data
+					Exporter tous les cours
 				</Button>
 				<Button
 					disabled={table.getPrePaginationRowModel().rows.length === 0}
@@ -262,7 +280,7 @@ const CoursePage = () => {
 					leftSection={<IconDownload />}
 					variant="filled"
 				>
-					Export All Rows
+					Exporter toutes les lignes
 				</Button>
 				<Button
 					disabled={table.getRowModel().rows.length === 0}
@@ -280,7 +298,7 @@ const CoursePage = () => {
 					leftSection={<IconDownload />}
 					variant="filled"
 				>
-					Export Selected Rows
+					Exporter les lignes selectionnées
 				</Button>
 			</Box>
 		),
@@ -291,6 +309,11 @@ const CoursePage = () => {
 			showProgressBars: isFetchingCourses,
 		},
 	});
+
+	useEffect(() => {
+		setSelectedValue(undefined);
+		//setSelectedValue(table.getState().editingRow?.original.group?.value.toString() ?? '9')
+	}, [selectedValue]);
 
 	return <MantineReactTable table={table} />;
 };
@@ -303,24 +326,22 @@ function useCreateCourse() {
 	return useMutation({
 		mutationFn: async (course: Course) => {
 			//send api update request here
-			await new Promise(resolve => setTimeout(resolve, 1000)); //fake api call
-			return Promise.resolve();
+			api
+				.post('v1/courses', course)
+				.then(() => {
+					notifications.show({
+						title: 'Default notification',
+						message: 'Hey there, your code is awesome! 🤥',
+					});
+				})
+				.catch(err => {
+					notifications.show({
+						title: 'Error',
+						message: err.data.response.message,
+					});
+				});
 		},
-		//client side optimistic update
-		onMutate: (newCourseInfo: Course) => {
-			queryClient.setQueryData(
-				['courses'],
-				(prevCourses: any) =>
-					[
-						...prevCourses,
-						{
-							...newCourseInfo,
-							id: (Math.random() + 1).toString(36).substring(7),
-						},
-					] as Course[],
-			);
-		},
-		// onSettled: () => queryClient.invalidateQueries({ queryKey: ['Courses'] }), //refetch Courses after mutation, disabled for demo
+		onSettled: () => queryClient.invalidateQueries({ queryKey: ['courses'] }), //refetch Courses after mutation, disabled for demo
 	});
 }
 
@@ -342,7 +363,6 @@ function useGetUnits() {
 		queryFn: async () =>
 			//send api request here
 			api.get('v1/units/create').then(res => res.data.data),
-
 		refetchOnWindowFocus: false,
 	});
 }
@@ -352,22 +372,20 @@ function useUpdateCourse() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async (course: Course) => {
-			console.log('course', course);
 			//send api update request here
-			await new Promise(resolve => setTimeout(resolve, 1000)); //fake api call
-			return Promise.resolve();
+			api
+				.put(`v1/courses/${course.id}`, course)
+				.then(() => {
+					notifications.show({
+						title: 'Default notification',
+						message: 'Hey there, your code is awesome! 🤥',
+					});
+				})
+				.catch(err => {
+					console.log('error', err);
+				});
 		},
-		//client side optimistic update
-		onMutate: (newCourseInfo: Course) => {
-			queryClient.setQueryData(
-				['courses'],
-				(prevCourses: any) =>
-					prevCourses?.state.map((prevCourse: Course) =>
-						prevCourse.id === newCourseInfo.id ? newCourseInfo : prevCourse,
-					),
-			);
-		},
-		// onSettled: () => queryClient.invalidateQueries({ queryKey: ['Courses'] }), //refetch Courses after mutation, disabled for demo
+		onSettled: () => queryClient.invalidateQueries({ queryKey: ['courses'] }), //refetch Courses after mutation, disabled for demo
 	});
 }
 
@@ -377,8 +395,7 @@ function useDeleteCourse() {
 	return useMutation({
 		mutationFn: async (courseId: string) => {
 			//send api update request here
-			await new Promise(resolve => setTimeout(resolve, 1000)); //fake api call
-			return Promise.resolve();
+			api.delete(`v1/courses/${courseId}`);
 		},
 		//client side optimistic update
 		onMutate: (courseId: string) => {
@@ -387,23 +404,17 @@ function useDeleteCourse() {
 				(prevCourses: Course[]) => prevCourses?.filter((course: Course) => course.id !== courseId),
 			);
 		},
-		// onSettled: () => queryClient.invalidateQueries({ queryKey: ['courses'] }), //refetch Courses after mutation, disabled for demo
+		//onSettled: () => queryClient.invalidateQueries({ queryKey: ['courses'] }), //refetch Courses after mutation, disabled for demo
 	});
 }
 
 const validateRequired = (value: string) => !!value.length;
-const validateEmail = (email: string) =>
-	!!email.length &&
-	email
-		.toLowerCase()
-		.match(
-			/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-		);
 
 function validateCourse(course: Course) {
 	return {
-		name: !validateRequired(course.name) ? 'First Name is Required' : '',
-		coeff: !validateRequired(course.coeff.toString()) ? 'Last Name is Required' : '',
+		unit_id: !validateRequired(course.unit_id) ? 'Unit is required' : '',
+		name: !validateRequired(course.name) ? 'Name is required' : '',
+		coeff: !validateRequired(course.coeff.toString()) ? 'Coeff is required' : '',
 		//unit_id: !validateEmail(course.description) ? 'Group is Required' : '',
 	};
 }

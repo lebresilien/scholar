@@ -4,17 +4,23 @@ export type Course = {
 	coeff: number;
 	unit_id: string;
 	description: string;
-	group?: Init;
+	group?: T;
 };
 
 export type Unit = {
 	id: string;
 	name: string;
-	coeff: number;
+	description: string;
+	group?: T;
+};
+
+export type Group = {
+	id: string;
+	name: string;
 	description: string;
 };
 
-type Init = {
+type T = {
 	value: string;
 	label: string;
 };

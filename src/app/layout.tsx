@@ -13,15 +13,7 @@ export const metadata = {
 	metadataBase: new URL('https://mantine-admin.vercel.app/'),
 	title: { default: 'Mantine Admin', template: '%s | Mantine Admin' },
 	description: 'A Modern Dashboard with Next.js.',
-	keywords: [
-		'Ecole',
-		'Eleve',
-		'Cours',
-		'Classe',
-		'school',
-		'Student',
-		'Enseignant'
-	]
+	keywords: ['Ecole', 'Eleve', 'Cours', 'Classe', 'school', 'Student', 'Enseignant'],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

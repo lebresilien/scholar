@@ -1,15 +1,16 @@
-"use client"
+'use client';
 
 import { DrawIoEmbed } from 'react-drawio';
 
 export default function DrawioPage() {
-  return (
-    <DrawIoEmbed urlParameters={{
-        ui: 'kennedy',
-        spin: true,
-        libraries: true,
-        saveAndExit: true
-      }}
-    />
-  );
+	return (
+		<DrawIoEmbed
+			urlParameters={{
+				ui: 'kennedy',
+				spin: true,
+				libraries: true,
+				saveAndExit: true,
+			}}
+		/>
+	);
 }

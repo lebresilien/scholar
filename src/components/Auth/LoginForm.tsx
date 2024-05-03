@@ -14,14 +14,14 @@ import { useForm } from '@mantine/form';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { StringDecoder } from 'string_decoder';
 import useAuthStore from '@/app/store/authStore';
 import api from '@/lib/api';
-import { StringDecoder } from 'string_decoder';
 
 interface AuthType {
-	email: string
-	password: string
-	device_name: string
+	email: string;
+	password: string;
+	device_name: string;
 }
 export function LoginForm() {
 	const [loading, setLoading] = useState(false);
@@ -34,11 +34,11 @@ export function LoginForm() {
 		initialValues: {
 			email: '',
 			password: '',
-			device_name: 'web'
+			device_name: 'web',
 		},
 	});
 
-	const handleSubmit = async(values: AuthType) => {
+	const handleSubmit = async (values: AuthType) => {
 		setLoading(true);
 		setError('');
 		api
@@ -50,7 +50,7 @@ export function LoginForm() {
 				router.push('/dashboard');
 			})
 			.catch(err => {
-				setLoading(false)
+				setLoading(false);
 				setError(err.response.data.message);
 			});
 	};

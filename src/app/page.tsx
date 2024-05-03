@@ -1,16 +1,15 @@
-'use client'
+'use client';
 
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Footer } from '@/components/Footer/Footer';
 import { EmailSection } from '@/components/Landing/EmailSection';
 import { FeaturesSection } from '@/components/Landing/FeaturesSection';
 import { Header } from '@/components/Landing/Header';
 import { HeroSection } from '@/components/Landing/HeroSection';
 import { LandingContainer } from '@/components/Landing/LandingContainer';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function Page() {
-
 	const router = useRouter();
 
 	useEffect(() => {

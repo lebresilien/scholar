@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: Props) {
 
 	useEffect(() => {
 		if (!user) {
-			api('user').then(res => edit(res.data) )
+			api('user').then(res => edit(res.data));
 		}
 	}, [edit, user]);
 

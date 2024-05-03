@@ -6,4 +6,3 @@ export const getCourses = async (): Promise<Course[]> => {
 	const res = await api.get('v1/courses');
 	return res.data.state;
 };
-
